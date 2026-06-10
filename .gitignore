@@ -1,0 +1,14 @@
+# Ignora le cartelle di compilazione di Zephyr/CMake
+build/
+.cache/
+
+# Ignora i file binari
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+
+# Dataset audio (se mai li scaricherai sul PC, non caricarli su GitHub!)
+*.wav
+dataset/
