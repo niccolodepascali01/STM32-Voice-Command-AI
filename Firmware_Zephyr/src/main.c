@@ -53,6 +53,25 @@ static volatile int current_word_idx = 0;
 // Variabile aggiornata dall'IA per dire al LED che pattern eseguire (-1 = in attesa)
 static volatile int predicted_pattern = -1;
 
+
+void stft(int16_t *current_audio){
+     for (int f = 0; f < NUM_FRAMES; f++) {
+            int start = f * FRAME_STEP;
+            for (int i = 0; i < FRAME_LENGTH; i++) {
+                frame_tmp[i] = ((float)current_audio[start + i] / 32768.0f) * hann_window[i];
+            }
+            frame_tmp[255] = 0.0f;
+            arm_rfft_fast_f32(&fft_instance, frame_tmp, output_fft, 0);
+            output_fft_mag[0]   = fabsf(output_fft[0]);
+            output_fft_mag[128] = fabsf(output_fft[1]);
+            arm_cmplx_mag_f32(&output_fft[2], &output_fft_mag[1], 127);
+            
+            memcpy(&in_data[f * NUM_BINS], output_fft_mag, NUM_BINS * sizeof(float));
+        }
+}
+
+
+
 /* ===================================================
  * 1. CONFIGURAZIONE HARDWARE (DEVICE TREE)
  * =================================================== */
@@ -100,20 +119,10 @@ void ai_thread_entry(void) {
         printf("🎙️  ANALIZZANDO L'AUDIO: '%s'\r\n", words[current_word_idx]);
         printf("========================================\r\n");
 
-        for (int f = 0; f < NUM_FRAMES; f++) {
-            int start = f * FRAME_STEP;
-            for (int i = 0; i < FRAME_LENGTH; i++) {
-                frame_tmp[i] = ((float)current_audio[start + i] / 32768.0f) * hann_window[i];
-            }
-            frame_tmp[255] = 0.0f;
-            arm_rfft_fast_f32(&fft_instance, frame_tmp, output_fft, 0);
-            output_fft_mag[0]   = fabsf(output_fft[0]);
-            output_fft_mag[128] = fabsf(output_fft[1]);
-            arm_cmplx_mag_f32(&output_fft[2], &output_fft_mag[1], 127);
-            
-            memcpy(&in_data[f * NUM_BINS], output_fft_mag, NUM_BINS * sizeof(float));
-        }
 
+
+        stft(current_audio);
+       
         if (stai_network_run(network_ctx, STAI_MODE_SYNC) == STAI_SUCCESS) {
             int best_idx = 0;
             float max_prob = 0.0f;
