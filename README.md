@@ -445,6 +445,6 @@ Se si riaddestrare il modello e si ottiene un nuovo `model_kws.tflite`:
 
 **STAI lite runtime con `use-lite-runtime` + `use-st-ai`** — il codice generato usa il runtime leggero di ST Edge AI, che occupa solo ~10 KiB di Flash aggiuntivi rispetto al modello.
 
-**Nessuna allocazione dinamica a runtime** — attivazioni e buffer I/O sono statici e allineati a 4 byte. Questo garantisce comportamento deterministico e assenza di frammentazione heap su un sistema embedded.
+**Assenza di allocazione dinamica a runtime** — attivazioni e buffer I/O sono statici e allineati a 4 byte. Questo garantisce comportamento deterministico e assenza di frammentazione heap su un sistema embedded.
 
 **Tre thread Zephyr separati** — disaccoppia completamente la logica AI (lenta, ~2 s/ciclo) dall'output LED (continuo) e dalla lettura del pulsante (polling a 50 ms), senza bisogno di logica asincrona complessa.
